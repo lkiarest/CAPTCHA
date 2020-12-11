@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Captcha Test</title>
+  <style>
+    #captcha {
+      width: 256px;
+      height: 93px;
+      position: relative;
+    }
+
+    #slot {
+      width: 40px;
+      height: 40px;
+      position: absolute;
+      background-position: right top;
+      border: 1px solid #999;
+      cursor: move;
+    }
+  </style>
+</head>
+<body>
+  <div id="captcha">
+    <div id="slot"></div>
+  </div>
+  <script>
+    const outerWidth = 256
+    const outerHeight = 93
+    const slotSize = 40
+    const token = '{{TOKEN}}'
+
+    window.onload = function() {
+      const body = document.body
+      const url = 'https://1834288579599395.cn-shanghai.fc.aliyuncs.com/2016-08-15/proxy/captcha/generate/'
+      // const url = 'http://localhost:8000/2016-08-15/proxy/captcha/generate'
+      const captcha = document.getElementById('captcha')
+      const slot = document.getElementById('slot')
+
+      slot.addEventListener('mousedown', handleMouseDown)
+
+      let startX = 0
+      let startY = 0
+      let maxX = outerWidth - slotSize
+      let maxY = outerHeight - slotSize
+      let currentX = 0
+      let currentY = 0
+
+      function handleMouseDown(e) {
+        const transform = slot.style.transform
+        startX = e.clientX
+        startY = e.clientY
+
+        body.addEventListener('mousemove', handleMouseMove)
+        body.addEventListener('mouseup', handleMouseUp)
+      }
+
+      function handleMouseMove(e) {
+        currentX = e.clientX - startX
+        currentY = e.clientY - startY
+
+        if (currentX < 0) {
+          currentX = 0
+        } else if (currentX > maxX) {
+          currentX = maxX
+        }
+
+        if (currentY < 0) {
+          currentY = 0
+        } else if (currentY > maxY) {
+          currentY = maxY
+        }
+
+        slot.style.transform = `translate3d(${currentX}px, ${currentY}px, 0)`
+      }
+
+      function handleMouseUp(e) {
+        body.removeEventListener('mousemove', handleMouseMove)
+        body.removeEventListener('up', handleMouseMove)
+        doVerify()
+      }
+
+      function doVerify() {
+        fetch(`${url}?token=${token}&verify=${currentX}|${currentY}`).then(res => res.json()).then(data => {
+          if (data.verified) {
+            window.parent.postMessage({
+              type: 'verified',
+              position: [currentX, currentY]
+            }, '*')
+          } else {
+            alert('验证失败，请重试！')
+            window.location.reload()
+          }
+        })
+      }
+
+      function loadImage() {
+        const imgUrl = `${url}?token=${token}`
+        captcha.style.backgroundImage = `url(${imgUrl})`
+        slot.style.backgroundImage = `url(${imgUrl})`
+      }
+
+      loadImage()
+    };
+  </script>
+</body>
+</html>
