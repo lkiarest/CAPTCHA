@@ -33,8 +33,8 @@
 
     window.onload = function() {
       const body = document.body
-      const url = 'https://1834288579599395.cn-shanghai.fc.aliyuncs.com/2016-08-15/proxy/captcha/generate/'
-      // const url = 'http://localhost:8000/2016-08-15/proxy/captcha/generate'
+      // const url = 'https://1834288579599395.cn-shanghai.fc.aliyuncs.com/2016-08-15/proxy/captcha/generate/'
+      const url = 'http://localhost:8000/2016-08-15/proxy/captcha/generate'
       const captcha = document.getElementById('captcha')
       const slot = document.getElementById('slot')
 
@@ -86,7 +86,8 @@
           if (data.verified) {
             window.parent.postMessage({
               type: 'verified',
-              position: [currentX, currentY]
+              token,
+              auth: data.auth
             }, '*')
           } else {
             alert('验证失败，请重试！')

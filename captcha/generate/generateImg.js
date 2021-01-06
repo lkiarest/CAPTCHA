@@ -5,6 +5,17 @@ const IMG_FILE_PATH = path.resolve(__dirname, 'timg.jpg');
 const CROP_SIZE = 40;
 const TEMP_IMG = '/tmp/temp.jpg';
 
+function getRandomArea(width, height) {
+  const centerX = (1 + Math.random()) * width / 2 - CROP_SIZE
+  const centerY = (1 + Math.random()) * height / 2 - CROP_SIZE / 2
+  const cropOffset = CROP_SIZE / 2
+  const startX = centerX - cropOffset
+  const startY = centerY - cropOffset
+  const cropArea = [CROP_SIZE, CROP_SIZE, startX, startY]
+
+  return cropArea
+}
+
 function generateImg () {
   const imgFile = gm(IMG_FILE_PATH);
 
@@ -15,12 +26,8 @@ function generateImg () {
         return reject('can not get image size');
       }
 
-      const centerX = (1 + Math.random()) * width / 2 - CROP_SIZE
-      const centerY = height / 2
-      const cropOffset = CROP_SIZE / 2
-      const startX = centerX - cropOffset
-      const startY = centerY - cropOffset
-      const cropArea = [CROP_SIZE, CROP_SIZE, startX, startY]
+      const cropArea = getRandomArea(width, height) // [CROP_SIZE, CROP_SIZE, startX, startY]
+      const [_, startX, startY] = cropArea
 
       // cropedImage
       imgFile.crop(...cropArea).write(TEMP_IMG, function(err) {
@@ -28,7 +35,15 @@ function generateImg () {
           console.error(err)
         }
 
-        imgFile.noise('laplacian').append(TEMP_IMG, true).region(...cropArea).charcoal(0.2).toBuffer('JPEG', function(err, buffer) {
+        imgFile.noise('laplacian')
+          .append(TEMP_IMG, true)
+          .region(...cropArea)
+          .colorize(50, 50, 50) // 阴影区域
+          .region(...getRandomArea(width, height))
+          .colorize(10, 10, 10) // 混淆区域
+          .region(...getRandomArea(width, height))
+          .colorize(20, 20, 20) // 混淆区域
+          .toBuffer('JPEG', function(err, buffer) {
           if (err) {
             console.error(err);
           }

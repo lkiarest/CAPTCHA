@@ -17,6 +17,7 @@ module.exports.initializer = function(context, callback) {
 */
 
 let _tokenCache = new Map()
+let _authCache = new Map()
 
 const getToken = function() {
     return uuid.v4()
@@ -32,10 +33,10 @@ module.exports.handler = function(req, resp, context) {
         //   var value = req.queries[key];
         //   resp.setHeader(key, value);
         // }
-        const token = req.queries && req.queries.token
-        const verify = req.queries && req.queries.verify
+        const queries = req.queries || {}
+        const { token, verify, auth } = queries
 
-        if (verify) { // 校验验证码
+        if (verify) { // 校验前端验证码
             if (token) {
                 if (!_tokenCache.has(token)) {
                     resp.send(JSON.stringify({ verified: false }))
@@ -46,8 +47,30 @@ module.exports.handler = function(req, resp, context) {
                 // console.log('verify token:', token)
                 const [x, y] = _tokenCache.get(token)
                 _tokenCache.delete(token) // 只允许校验一次
+
                 const [userX, userY] = verify.split('|')
                 if (Math.abs(userX - x) < 4 && Math.abs(userY - y) < 4) {
+                    const authKey = getToken()
+                    _authCache.set(token, authKey)
+                    resp.send(JSON.stringify({ verified: true, auth: authKey }))
+                } else {
+                    resp.send(JSON.stringify({ verified: false }))
+                }
+            } else {
+                resp.send(JSON.stringify({ verified: false }))
+            }
+        } else if (auth) { // 检验授权码，服务端校验用
+            if (token) {
+                if (!_authCache.has(token)) {
+                    resp.send(JSON.stringify({ verified: false }))
+                    return
+                }
+
+                resp.setHeader('content-type', 'application/json');
+                const savedAuth = _authCache.get(token)
+                _authCache.delete(token) // 只允许校验一次
+
+                if (savedAuth === auth) {
                     resp.send(JSON.stringify({ verified: true }))
                 } else {
                     resp.send(JSON.stringify({ verified: false }))

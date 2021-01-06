@@ -71,7 +71,7 @@
       window.addEventListener('message', function(msg) {
         const data = msg && msg.data || {};
         if (data.type === 'verified') {
-          console.log('check code', data.position)
+          console.log('check code', data)
           $('#exampleModal').modal('hide');
         }
       });
