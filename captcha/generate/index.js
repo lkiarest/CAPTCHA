@@ -78,18 +78,22 @@ module.exports.handler = function(req, resp, context) {
             } else {
                 resp.send(JSON.stringify({ verified: false }))
             }
-        } else if (token) { // 获取 token 对应的图片
-            console.log('generate image:', token)
-            generateImg().then(({ position, image: data }) => {
+        } else if (token) { // @deprecated 获取 token 对应的图片，已改为通过base64直接设置图片
+            // console.log('generate image:', token)
+            // generateImg().then(({ position, image: data }) => {
+            //     _tokenCache.set(token, position)
+            //     resp.setHeader('content-type', 'jpeg');
+            //     resp.send(data);
+            // }).catch((e) => {
+            //     resp.send('Error:' + e.message);
+            // });
+        } else { // 获取验证码页面
+            const token = getToken()
+            generateImg().then(({ position, image: base64 }) => {
                 _tokenCache.set(token, position)
-                resp.setHeader('content-type', 'jpeg');
-                resp.send(data);
-            }).catch((e) => {
-                resp.send('Error:' + e.message);
-            });
-        } else { // 获取 template 页面
-            resp.setHeader('content-type', 'text/html');
-            resp.send(templateHtml.replace('{{TOKEN}}', getToken()))
+                resp.setHeader('content-type', 'text/html');
+                resp.send(templateHtml.replace('{{TOKEN}}', token).replace(/{{IMG_URL}}/g, base64))
+            })
         }
     });
 

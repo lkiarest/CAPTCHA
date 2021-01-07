@@ -2,4 +2,4 @@ RUNTIME nodejs12
 
 RUN fun-install apt-get install imagemagick
 RUN fun-install apt-get install graphicsmagick
-RUN npm install uuid
+RUN npm install uuid gm-base64

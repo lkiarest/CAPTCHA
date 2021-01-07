@@ -9,14 +9,16 @@
       width: 256px;
       height: 93px;
       position: relative;
+      background-image: url('{{IMG_URL}}');
     }
 
     #slot {
       width: 40px;
       height: 40px;
       position: absolute;
+      background-image: url('{{IMG_URL}}');
       background-position: right top;
-      border: 1px solid #999;
+      box-shadow: black 2px 2px 3px;
       cursor: move;
     }
   </style>
@@ -30,6 +32,7 @@
     const outerHeight = 93
     const slotSize = 40
     const token = '{{TOKEN}}'
+    const tracks = []
 
     window.onload = function() {
       const body = document.body
@@ -51,6 +54,7 @@
         const transform = slot.style.transform
         startX = e.clientX
         startY = e.clientY
+        tracks.length= 0
 
         body.addEventListener('mousemove', handleMouseMove)
         body.addEventListener('mouseup', handleMouseUp)
@@ -59,6 +63,8 @@
       function handleMouseMove(e) {
         currentX = e.clientX - startX
         currentY = e.clientY - startY
+
+        tracks.push(`${currentX}_${currentY}`)
 
         if (currentX < 0) {
           currentX = 0
@@ -82,7 +88,7 @@
       }
 
       function doVerify() {
-        fetch(`${url}?token=${token}&verify=${currentX}|${currentY}`).then(res => res.json()).then(data => {
+        fetch(`${url}?token=${token}&verify=${currentX}|${currentY}&tracks=${tracks}`).then(res => res.json()).then(data => {
           if (data.verified) {
             window.parent.postMessage({
               type: 'verified',
@@ -95,14 +101,6 @@
           }
         })
       }
-
-      function loadImage() {
-        const imgUrl = `${url}?token=${token}`
-        captcha.style.backgroundImage = `url(${imgUrl})`
-        slot.style.backgroundImage = `url(${imgUrl})`
-      }
-
-      loadImage()
     };
   </script>
 </body>

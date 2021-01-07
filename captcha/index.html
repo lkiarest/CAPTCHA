@@ -73,6 +73,10 @@
         if (data.type === 'verified') {
           console.log('check code', data)
           $('#exampleModal').modal('hide');
+
+          setTimeout(() => {
+            alert('提交成功')
+          }, 1000)
         }
       });
 
